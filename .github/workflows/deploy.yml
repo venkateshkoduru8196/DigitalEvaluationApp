@@ -17,14 +17,14 @@ jobs:
         uses: actions/checkout@v4
 
       # =========================
-      # FRONTEND
+      # FRONTEND SETUP
       # =========================
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Frontend
+      - name: Install Frontend Dependencies
         working-directory: ./DigitalEvaluationReact
         run: npm install
 
@@ -33,7 +33,7 @@ jobs:
         run: npm run build
 
       # =========================
-      # COPY FRONTEND TO BACKEND
+      # COPY FRONTEND DIST TO BACKEND WWWROOT
       # =========================
       - name: Copy Frontend to Backend
         shell: cmd
@@ -43,14 +43,14 @@ jobs:
           xcopy /E /I /Y DigitalEvaluationReact\dist DIGITALEVALUATIONAPT\wwwroot
 
       # =========================
-      # BACKEND
+      # BACKEND SETUP
       # =========================
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore Backend
+      - name: Restore Backend Dependencies
         working-directory: ./DIGITALEVALUATIONAPT
         run: dotnet restore
 
@@ -59,7 +59,7 @@ jobs:
         run: dotnet publish -c Release -o ./publish
 
       # =========================
-      # FTP DEPLOY
+      # FTP / FTPS DEPLOY
       # =========================
       - name: Deploy to Hosting
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -67,5 +67,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
           local-dir: ./DIGITALEVALUATIONAPT/publish/
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
