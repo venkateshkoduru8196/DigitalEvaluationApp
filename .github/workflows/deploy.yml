@@ -11,23 +11,29 @@ jobs:
 
     steps:
       # =========================
-      # CHECKOUT REPOSITORY
+      # CHECKOUT CODE
       # =========================
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       # =========================
-      # FRONTEND SETUP
+      # SETUP NODE
       # =========================
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      # =========================
+      # INSTALL FRONTEND
+      # =========================
       - name: Install Frontend Dependencies
         working-directory: ./DigitalEvaluationReact
         run: npm install
 
+      # =========================
+      # BUILD FRONTEND
+      # =========================
       - name: Build Frontend
         working-directory: ./DigitalEvaluationReact
         run: npm run build
@@ -43,23 +49,29 @@ jobs:
           xcopy /E /I /Y DigitalEvaluationReact\dist DIGITALEVALUATIONAPT\wwwroot
 
       # =========================
-      # BACKEND SETUP
+      # SETUP .NET
       # =========================
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
+      # =========================
+      # RESTORE BACKEND
+      # =========================
       - name: Restore Backend Dependencies
         working-directory: ./DIGITALEVALUATIONAPT
         run: dotnet restore
 
+      # =========================
+      # PUBLISH BACKEND
+      # =========================
       - name: Publish Backend
         working-directory: ./DIGITALEVALUATIONAPT
         run: dotnet publish -c Release -o ./publish
 
       # =========================
-      # FTP / FTPS DEPLOY
+      # DEPLOY TO HOSTING
       # =========================
       - name: Deploy to Hosting
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -67,7 +79,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
+          protocol: ftp
           port: 21
           local-dir: ./DIGITALEVALUATIONAPT/publish/
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
