@@ -83,3 +83,7 @@ jobs:
           port: 21
           local-dir: ./DIGITALEVALUATIONAPT/publish/
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          exclude: |
+            **/appsettings.json
+            **/appsettings.Production.json
+            **/appsettings.Development.json
