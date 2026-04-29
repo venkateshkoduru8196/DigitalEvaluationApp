@@ -10,10 +10,17 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # =========================
+      # CHECKOUT REPOSITORY
+      # =========================
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
+      # =========================
       # FRONTEND
-      - uses: actions/setup-node@v4
+      # =========================
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
@@ -25,24 +32,35 @@ jobs:
         working-directory: ./DigitalEvaluationReact
         run: npm run build
 
+      # =========================
+      # COPY FRONTEND TO BACKEND
+      # =========================
       - name: Copy Frontend to Backend
+        shell: cmd
         run: |
           if exist DIGITALEVALUATIONAPT\wwwroot rmdir /s /q DIGITALEVALUATIONAPT\wwwroot
           mkdir DIGITALEVALUATIONAPT\wwwroot
           xcopy /E /I /Y DigitalEvaluationReact\dist DIGITALEVALUATIONAPT\wwwroot
 
+      # =========================
       # BACKEND
-      - uses: actions/setup-dotnet@v4
+      # =========================
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
+      - name: Restore Backend
+        working-directory: ./DIGITALEVALUATIONAPT
+        run: dotnet restore
+
       - name: Publish Backend
         working-directory: ./DIGITALEVALUATIONAPT
-        run: |
-          dotnet restore
-          dotnet publish -c Release -o ./publish
+        run: dotnet publish -c Release -o ./publish
 
+      # =========================
       # FTP DEPLOY
+      # =========================
       - name: Deploy to Hosting
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -50,4 +68,4 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./DIGITALEVALUATIONAPT/publish/
-          server-dir: /httpdocs/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
