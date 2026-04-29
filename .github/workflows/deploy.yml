@@ -1,0 +1,53 @@
+name: Deploy App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # FRONTEND
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Frontend
+        working-directory: ./DigitalEvaluationReact
+        run: npm install
+
+      - name: Build Frontend
+        working-directory: ./DigitalEvaluationReact
+        run: npm run build
+
+      - name: Copy Frontend to Backend
+        run: |
+          if exist DIGITALEVALUATIONAPT\wwwroot rmdir /s /q DIGITALEVALUATIONAPT\wwwroot
+          mkdir DIGITALEVALUATIONAPT\wwwroot
+          xcopy /E /I /Y DigitalEvaluationReact\dist DIGITALEVALUATIONAPT\wwwroot
+
+      # BACKEND
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish Backend
+        working-directory: ./DIGITALEVALUATIONAPT
+        run: |
+          dotnet restore
+          dotnet publish -c Release -o ./publish
+
+      # FTP DEPLOY
+      - name: Deploy to Hosting
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./DIGITALEVALUATIONAPT/publish/
+          server-dir: /httpdocs/
